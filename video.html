@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pointers</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                <canvas id="canvasInput" width="640" height="480"></canvas>
+            </td>
+            <td>
+                <canvas id="canvasOutput" width="640" height="480"></canvas>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="invisible">
+    <video id="video" class="hidden">Your browser does not support the video tag.</video>
+</div>
+
+<script>
+    let canvasOutput = document.getElementById("canvasOutput");
+    let canvasOutputCtx = canvasOutput.getContext('2d');
+    let canvasInput = document.getElementById("canvasInput");
+    let canvasInputCtx = canvasInput.getContext('2d');
+
+    let width = 640;
+    let height = 480;
+    let numBytes = width * height * 4;
+    let resolution = {width: {exact: width}, height: {exact: height}};
+    let video = document.getElementById('video');
+    let stream = null;
+    let streaming = false;
+
+    function startCamera() {
+        if (streaming) return;
+        navigator.mediaDevices.getUserMedia({video: resolution, audio: false})
+            .then(function(s) {
+                stream = s;
+                video.srcObject = s;
+                video.play();
+            })
+            .catch(function(err) {
+                console.log("An error occured! " + err);
+            });
+
+        video.addEventListener("canplay", function(ev){
+            if (!streaming) {
+                video.setAttribute("width", width);
+                video.setAttribute("height", height);
+                streaming = true;
+            }
+            startVideoProcessing();
+        }, false);
+    }
+
+    function startVideoProcessing() {
+        console.log("Started with video processing.");
+        requestAnimationFrame(processVideo);
+    }
+
+    function processVideo() {
+        // Load image from GPU buffer to the canvas object
+        canvasInputCtx.drawImage(video, 0, 0, width, height);
+
+        // Execute frame processing
+        processFrame();
+
+        // Request frame refresh
+        requestAnimationFrame(processVideo);
+    }
+
+    let inputBuffer = null;
+    let outputBuffer = null;
+    let canvasPtrs = null;
+
+    function processFrame() {
+        // Get the canvas image data and copy it to heap buffer
+        inputBuffer.dataOnHeap.set(new Uint8Array(canvasInputCtx.getImageData(0, 0, width, height).data));
+        canvasPtrs.generateGrayscale();
+
+        // Copy image from the output buffer to the output canvas
+        canvasOutputCtx.putImageData(new ImageData(new Uint8ClampedArray(outputBuffer.dataOnHeap), width, height), 0, 0);
+    }
+
+
+    function start() {
+        console.log("Starting");
+
+        class FrameBuffer
+        {
+            byteOffset = null;
+            length = null;
+            numBytes = null;
+            dataPtr = null;
+            dataOnHeap = null;
+        }
+
+        // Allocate input canvas buffer on heap
+        inputBuffer = new FrameBuffer();
+        inputBuffer.dataPtr = Module._malloc(numBytes);
+        inputBuffer.dataOnHeap = new Uint8Array(Module.HEAP8.buffer, inputBuffer.dataPtr, numBytes);
+
+        // Allocate output canvas buffer on heap
+        outputBuffer = new FrameBuffer();
+        outputBuffer.dataPtr = Module._malloc(numBytes);
+        outputBuffer.dataOnHeap = new Uint8Array(Module.HEAP8.buffer, outputBuffer.dataPtr, numBytes);
+
+        // Create CavasPtrs object
+        canvasPtrs = new Module.CanvasPtrs();
+        canvasPtrs.setInputCanvasPtr(inputBuffer.dataPtr, height, width);
+        canvasPtrs.setOutputCanvasPtr(outputBuffer.dataPtr, height, width);
+
+        // Start the camera capture
+        startCamera();
+
+    }
+
+    function ready() {
+        var img = new Image();
+        img.onload = function() {
+            canvasInputCtx.drawImage(img, 0, 0);
+            start();
+        };
+        img.src = 'image.png';
+    }
+</script>
+
+<script>
+    var Module = {
+        onRuntimeInitialized: function() {
+            console.log("Ready");
+            ready();
+        }
+    }
+</script>
+<script src="Detector.js"></script>
+</body>
+</html>
