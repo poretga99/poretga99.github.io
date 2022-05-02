@@ -15,7 +15,7 @@ function start() {
     let resolution = {width: {exact: width}, height: {exact: height}};
     let video = document.getElementById('video');
     let numBytes = width * height * 4;
-
+    let roi2d = null;
 
     class FrameBuffer
     {
@@ -25,6 +25,9 @@ function start() {
         dataPtr = null;
         dataOnHeap = null;
     }
+
+    // Create Detector object
+    detector = new Module.Detector(width, height);
 
     // Allocate input canvas buffer on heap
     inputBuffer = new FrameBuffer();
@@ -36,10 +39,9 @@ function start() {
     outputBuffer.dataPtr = Module._malloc(numBytes);
     outputBuffer.dataOnHeap = new Uint8Array(Module.HEAP8.buffer, outputBuffer.dataPtr, numBytes);
 
-    // Create CavasPtrs object
-    detector = new Module.Detector();
     detector.setInputBuffer(inputBuffer.dataPtr, height, width);
     detector.setOutputBuffer(outputBuffer.dataPtr, height, width);
+    detector.initializeTrackerROI(200, 200, 100, 100);
 
     // Start the camera capture
     console.log("Initializing camera...");
@@ -47,11 +49,30 @@ function start() {
 
 
     function processFrame() {
+
+        if(inputBuffer.dataOnHeap.length === 0) {
+            console.log("Resetting the input buffer...");
+            inputBuffer.dataOnHeap = new Uint8Array(Module.HEAP8.buffer, inputBuffer.dataPtr, numBytes);
+        }
+
         // Get the canvas image data and copy it to heap buffer
         inputBuffer.dataOnHeap.set(new Uint8Array(canvasInputCtx.getImageData(0, 0, width, height).data));
+
         detector.processFrame();
+        roi2d = detector.getCurrentROI();
+
+        if(outputBuffer.dataOnHeap.length === 0) {
+            console.log("Resetting the output buffer...");
+            outputBuffer.dataOnHeap = new Uint8Array(Module.HEAP8.buffer, outputBuffer.dataPtr, numBytes);
+        }
 
         // Copy image from the output buffer to the output canvas
         canvasOutputCtx.putImageData(new ImageData(new Uint8ClampedArray(outputBuffer.dataOnHeap), width, height), 0, 0);
+
+        // Draw initial ROI rectangle
+        canvasOutputCtx.beginPath();
+        canvasOutputCtx.rect(roi2d.x, roi2d.y, roi2d.width, roi2d.height);
+        canvasOutputCtx.strokeStyle = "red";
+        canvasOutputCtx.stroke();
     }
 }
