@@ -118,35 +118,12 @@ function start() {
 
     function trackMouse(event, e) {
         if (event === 'down') {
-            mouseLocation.startX = e.clientX - canvasInput.offsetLeft;
-            mouseLocation.startY = e.clientY - canvasInput.offsetTop;
-            mouseLocation.currX = mouseLocation.startX;
-            mouseLocation.currY = mouseLocation.startY;
-            mouseLocation.pressed = true;
-        }
-        if (event === 'move' && mouseLocation.pressed) {
-            mouseLocation.currX = e.clientX - canvasInput.offsetLeft;
-            mouseLocation.currY = e.clientY - canvasInput.offsetTop;
-        }
-        if (event === 'up') {
-            mouseLocation.endX = mouseLocation.currX;
-            mouseLocation.endY = mouseLocation.currY;
-            mouseLocation.pressed = false;
-            roi.x = Math.min(mouseLocation.startX, mouseLocation.endX);
-            roi.y = Math.min(mouseLocation.startY, mouseLocation.endY);
-
-            if (roi.x === 0 || roi.y === 0 ){
-                roi.width = 80;
-                roi.height = 80;
-                roi.x = Math.min(Math.max(roi.x - roi.width / 2, 0), width - 1);
-                roi.y = Math.min(Math.max(roi.y - roi.height / 2, 0), height - 1);
-            } else {
-                roi.width = Math.abs(mouseLocation.startX - mouseLocation.endX);
-                roi.height = Math.abs(mouseLocation.startY - mouseLocation.endY);
-            }
-
-
-            roi.set = true;
+            roi.x = e.clientX - canvasInput.offsetLeft;
+            roi.y = e.clientY - canvasInput.offsetTop;
+            roi.width = 80;
+            roi.height = 80;
+            roi.x = Math.min(Math.max(roi.x - roi.width / 2, 0), width - 1);
+            roi.y = Math.min(Math.max(roi.y - roi.height / 2, 0), height - 1);
 
             if (roi_idx < 4){
                 let cornerType = null;
@@ -171,6 +148,9 @@ function start() {
                 roi_idx = roi_idx + 1;
             }
 
+            mouseLocation.currX = mouseLocation.startX;
+            mouseLocation.currY = mouseLocation.startY;
+            mouseLocation.pressed = true;
         }
     }
 
