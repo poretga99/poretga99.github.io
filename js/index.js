@@ -30,8 +30,8 @@ let roi_idx = 0;
 function start() {
     console.log("Starting");
 
-    let width = 640;
-    let height = 480;
+    let width = document.getElementById('canvasInput').width;
+    let height = document.getElementById('canvasInput').height;
     let resolution = {width: {exact: width}, height: {exact: height}};
     let video = document.getElementById('video');
     let numBytes = width * height * 4;
