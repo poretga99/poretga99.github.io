@@ -61,8 +61,7 @@ function start() {
 
     detector.setInputBuffer(inputBuffer.dataPtr, height, width);
     detector.setOutputBuffer(outputBuffer.dataPtr, height, width);
-    //detector.initializeTrackerROI(100, 100, 80, 80, Module.CornerType.TR);
-    //detector.initializeTrackerROI(300, 300, 80, 80, Module.CornerType.TL);
+    detector.setHSVRange(0, 0, 150, 255, 255, 255);
 
     // Start the camera capture
     console.log("Initializing camera...");
@@ -98,6 +97,19 @@ function start() {
         // Copy image from the output buffer to the output canvas
         canvasOutputCtx.putImageData(new ImageData(new Uint8ClampedArray(outputBuffer.dataOnHeap), width, height), 0, 0);
 
+        // Check for detected corners
+        if(roi_idx === 4) {
+            let cTL = detector.getCorner(Module.CornerType.TL);
+            let cTR = detector.getCorner(Module.CornerType.TR);
+            let cBL = detector.getCorner(Module.CornerType.BL);
+            let cBR = detector.getCorner(Module.CornerType.BR);
+
+            console.log(cTL);
+            console.log(cTR);
+            console.log(cBL);
+            console.log(cBR);
+        }
+
     }
 
     function initializeInputCanvasROIDrawing(canvasId)
@@ -120,8 +132,8 @@ function start() {
         if (event === 'down') {
             roi.x = e.clientX - canvasInput.offsetLeft;
             roi.y = e.clientY - canvasInput.offsetTop;
-            roi.width = 80;
-            roi.height = 80;
+            roi.width = 40;
+            roi.height = 40;
             roi.x = Math.min(Math.max(roi.x - roi.width / 2, 0), width - 1);
             roi.y = Math.min(Math.max(roi.y - roi.height / 2, 0), height - 1);
 
@@ -147,10 +159,6 @@ function start() {
                 detector.initializeTrackerROI(roi.x, roi.y, roi.width, roi.height, cornerType);
                 roi_idx = roi_idx + 1;
             }
-
-            mouseLocation.currX = mouseLocation.startX;
-            mouseLocation.currY = mouseLocation.startY;
-            mouseLocation.pressed = true;
         }
     }
 
