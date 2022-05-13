@@ -27,6 +27,19 @@ let roi = new MouseROI()
 let mouseLocation = new MouseLocation();
 let roi_idx = 0;
 
+let image = null;
+let image_canvas = null;
+let image_canvasCtx = null;
+function pre_load() {
+    image = document.createElement("img");
+    image.src = "neza.png";
+    image.onload = function(){
+        image_canvas = document.createElement(("canvas"));
+        image_canvasCtx = image_canvas.getContext("2d");
+        image_canvasCtx.drawImage(image, image.rows, image.columns);
+    };
+}
+
 function start() {
     console.log("Starting");
 
@@ -61,8 +74,8 @@ function start() {
 
     detector.setInputBuffer(inputBuffer.dataPtr, height, width);
     detector.setOutputBuffer(outputBuffer.dataPtr, height, width);
-    detector.setHSVRange(0, 0, 150, 255, 255, 255);
-
+    detector.setInitialOverlay(height, width, 125, 0, 0, 125);
+    detector.setCannyThresholds(100, 150);
     // Start the camera capture
     console.log("Initializing camera...");
     initializeInputCanvasROIDrawing("canvasInput")
@@ -132,8 +145,8 @@ function start() {
         if (event === 'down') {
             roi.x = e.clientX - canvasInput.offsetLeft;
             roi.y = e.clientY - canvasInput.offsetTop;
-            roi.width = 40;
-            roi.height = 40;
+            roi.width = 80;
+            roi.height = 80;
             roi.x = Math.min(Math.max(roi.x - roi.width / 2, 0), width - 1);
             roi.y = Math.min(Math.max(roi.y - roi.height / 2, 0), height - 1);
 
