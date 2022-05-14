@@ -13,7 +13,7 @@ function startCamera(_width, _height, _resolution, _video, _processFrameFcn) {
         if (streaming) return;
         navigator.mediaDevices.getUserMedia(
             {
-                facinMode: 'environment',
+                facingMode: 'environment',
                 video: resolution,
                 audio: false}
         )
