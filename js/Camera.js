@@ -11,7 +11,12 @@ function startCamera(_width, _height, _resolution, _video, _processFrameFcn) {
 
     function openCamera() {
         if (streaming) return;
-        navigator.mediaDevices.getUserMedia({video: resolution, audio: false})
+        navigator.mediaDevices.getUserMedia(
+            {
+                facinMode: 'environment',
+                video: resolution,
+                audio: false}
+        )
             .then(function(s) {
                 stream = s;
                 video.srcObject = s;

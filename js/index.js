@@ -78,7 +78,7 @@ function start() {
     detector.setCannyThresholds(100, 150);
     // Start the camera capture
     console.log("Initializing camera...");
-    initializeInputCanvasROIDrawing("canvasInput")
+    initializeInputCanvasROIDrawing("canvasOutput")
     startCamera(width, height, resolution, video, processFrame);
 
     function processFrame() {
@@ -116,11 +116,6 @@ function start() {
             let cTR = detector.getCorner(Module.CornerType.TR);
             let cBL = detector.getCorner(Module.CornerType.BL);
             let cBR = detector.getCorner(Module.CornerType.BR);
-
-            console.log(cTL);
-            console.log(cTR);
-            console.log(cBL);
-            console.log(cBR);
         }
 
     }
@@ -160,10 +155,10 @@ function start() {
                         cornerType = Module.CornerType.TR;
                         break;
                     case 2:
-                        cornerType = Module.CornerType.BL;
+                        cornerType = Module.CornerType.BR;
                         break;
                     case 3:
-                        cornerType = Module.CornerType.BR;
+                        cornerType = Module.CornerType.BL;
                         break;
                     default:
                         cornerType = Module.CornerType.TL;
