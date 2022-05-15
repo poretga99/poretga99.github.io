@@ -16,14 +16,14 @@ function startCamera(_width, _height, _resolution, _video, _processFrameFcn) {
                 video: {
                     facingMode: "environment",
                     width: {
-                        min: 1280,
-                        ideal: 1920,
-                        max: 2560,
+                        min: 480,
+                        ideal: 480,
+                        max: 720,
                     },
                     height: {
-                        min: 720,
-                        ideal: 1080,
-                        max: 1440,
+                        min: 640,
+                        ideal: 640,
+                        max: 1280,
                     },
                 },
                 audio: false}
@@ -49,18 +49,20 @@ function startCamera(_width, _height, _resolution, _video, _processFrameFcn) {
 
     function startVideoProcessing() {
         console.log("Started with video processing.");
-        requestAnimationFrame(processVideo);
+        requestAnimationFrame(processVideoAtFPS);
     }
 
-    function processVideo() {
+    const fps = 30;
+    function processVideoAtFPS() {
         // Load image from GPU buffer to the canvas object
         canvasInputCtx.drawImage(video, 0, 0, width, height);
 
         // Execute frame processing
         processFrameFcn();
 
-        // Request frame refresh
-        requestAnimationFrame(processVideo);
+        setTimeout(() => {
+            requestAnimationFrame(processVideoAtFPS);
+        }, 1000 / fps);
     }
 }
 
